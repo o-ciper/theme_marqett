@@ -1,7 +1,5 @@
 <script type="text/javascript">
-	// Emit the brands data as a raw JS literal (no quoting + JSON.parse)
-	// getBrandsJson() returns unescaped JSON and is safe for raw insertion.
-	var brands = {{ getBrandsJson()|raw }};
+	var brands = JSON.parse('{{ getBrandsJson() }}');
 </script>
 <link rel="preload" as="script" href="{{ themeAsset('javascript/theme.js') }}">
 <script type="text/javascript" src="{{ themeAsset('javascript/theme.js') }}"></script>
