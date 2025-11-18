@@ -1,0 +1,100 @@
+(index):109 Uncaught SyntaxError: Unexpected token '&' (at (index):109:25)
+installHook.js:1 jQuery.Deferred exception: IdeaApp is not defined ReferenceError: IdeaApp is not defined
+    at Object.controlMedia (http://localhost:8004/assets/javascript/navigation-menu.js:161:4)
+    at Object.init (http://localhost:8004/assets/javascript/navigation-menu.js:16:9)
+    at Object.init (http://localhost:8004/assets/javascript/theme.js:9:29)
+    at HTMLDocument.<anonymous> (http://localhost:8004/assets/javascript/theme.js:409:12)
+    at e (https://code.jquery.com/jquery-3.6.0.min.js:2:30038)
+    at t (https://code.jquery.com/jquery-3.6.0.min.js:2:30340) undefined
+overrideMethod @ installHook.js:1
+S.Deferred.exceptionHook @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2
+installHook.js:1 jQuery.Deferred exception: $(...).slick is not a function TypeError: $(...).slick is not a function
+    at HTMLDocument.<anonymous> (http://localhost:8004/:152:23)
+    at e (https://code.jquery.com/jquery-3.6.0.min.js:2:30038)
+    at t (https://code.jquery.com/jquery-3.6.0.min.js:2:30340) undefined
+overrideMethod @ installHook.js:1
+S.Deferred.exceptionHook @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2
+installHook.js:1 jQuery.Deferred exception: IdeaApp is not defined ReferenceError: IdeaApp is not defined
+    at Object.controlMedia (http://localhost:8004/assets/javascript/navigation-menu.js:161:4)
+    at Object.init (http://localhost:8004/assets/javascript/navigation-menu.js:16:9)
+    at Object.init (http://localhost:8004/assets/javascript/theme.js:9:29)
+    at HTMLDocument.<anonymous> (http://localhost:8004/assets/javascript/theme.js:409:12)
+    at e (https://code.jquery.com/jquery-3.6.0.min.js:2:30038)
+    at t (https://code.jquery.com/jquery-3.6.0.min.js:2:30340) undefined
+overrideMethod @ installHook.js:1
+S.Deferred.exceptionHook @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2
+jquery-3.6.0.min.js:2 Uncaught ReferenceError: IdeaApp is not defined
+controlMedia @ navigation-menu.js:161
+init @ navigation-menu.js:16
+init @ theme.js:9
+(anonymous) @ VM1724 theme.js:409
+e @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2
+jquery-3.6.0.min.js:2 Uncaught TypeError: $(...).slick is not a function
+(anonymous) @ (index):152
+e @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2
+jquery-3.6.0.min.js:2 Uncaught ReferenceError: IdeaApp is not defined
+controlMedia @ navigation-menu.js:161
+init @ navigation-menu.js:16
+init @ theme.js:9
+(anonymous) @ theme.js:409
+e @ jquery-3.6.0.min.js:2
+t @ jquery-3.6.0.min.js:2
+setTimeout
+(anonymous) @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+fire @ jquery-3.6.0.min.js:2
+c @ jquery-3.6.0.min.js:2
+fireWith @ jquery-3.6.0.min.js:2
+ready @ jquery-3.6.0.min.js:2
+B @ jquery-3.6.0.min.js:2

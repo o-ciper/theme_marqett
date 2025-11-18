@@ -1,45 +1,378 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
-// Configure Twig to load templates from the 'html' folder so includes like 'snippets/header.twig' work
-$loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/html');
-$twig = new \Twig\Environment($loader, [
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
+use Twig\TwigFilter;
+
+/**
+ * Local preview index.php (consolidated)
+ *
+ * Place this file into the root of the downloaded theme (next to html/ and assets/).
+ * Run: php -S localhost:8004
+ * Open: http://localhost:8004
+ *
+ * This file:
+ *  - Registers Twig helper shims and globals before rendering
+ *  - Provides PreviewProduct class used by templates
+ *  - Loads third-party libraries (via CDN) required by theme JS/CSS:
+ *      - jQuery (CDN)
+ *      - Popper.js (CDN, required by Bootstrap 4)
+ *      - Bootstrap 4.6 CSS/JS (CDN)
+ *      - Font Awesome (CDN)
+ *      - Slick carousel CSS/JS (CDN) — required for .slick()
+ *  - Loads local theme JS/CSS (lazyload, elevatezoom, theme.js, navigation-menu.js, product.js)
+ *  - Adds IdeaApp shim (minimal) so theme JS doesn't throw when running outside Ideasoft platform
+ */
+
+// -----------------------------
+// PreviewProduct (so twig can call product methods)
+// -----------------------------
+class PreviewProduct {
+    public $id;
+    public $url;
+    public $fullName;
+    public $brand;
+    public $primaryImage;
+    public $isNew = false;
+    public $hasGift = false;
+    public $isDigitalProduct = false;
+    public $realAmount = 10;
+    public $isDiscounted = false;
+    public $discountPercent = 0;
+    protected $price;
+    protected $discountedPrice;
+
+    public function __construct($id, $name, $price, $discountedPrice = null, $imageUrl = '', $brand = null) {
+        $this->id = $id;
+        $this->fullName = $name;
+        $this->price = (float)$price;
+        $this->discountedPrice = $discountedPrice !== null ? (float)$discountedPrice : $this->price;
+        $this->primaryImage = (object)['thumbUrl' => $imageUrl, 'alt' => $name];
+        $this->brand = $brand ? (object)$brand : null;
+        if ($this->discountedPrice < $this->price) {
+            $this->isDiscounted = true;
+            $this->discountPercent = (int)round((($this->price - $this->discountedPrice) / max(0.01, $this->price)) * 100);
+        }
+        $this->url = '/product/' . $this->id;
+    }
+
+    public function priceWithTax($currency = null) { return $this->price; }
+    public function discountedPriceWithTax($currency = null) { return $this->discountedPrice; }
+}
+
+// -----------------------------
+// Twig environment
+// -----------------------------
+$loader = new FilesystemLoader(__DIR__);
+$twig = new Environment($loader, [
     'cache' => false,
     'auto_reload' => true,
+    'debug' => true,
 ]);
 
-// Load config if present (useful for real settings)
+// Safe add functions/filters registry (avoid Twig introspection calls)
+$registeredFunctions = [];
+$registeredFilters = [];
+
+function safe_add_function(Environment $twig, array &$registry, string $name, callable $callable, array $options = []) {
+    if (isset($registry[$name])) return;
+    try {
+        $twig->addFunction(new TwigFunction($name, $callable, $options));
+        $registry[$name] = true;
+    } catch (\LogicException $e) {
+        // duplicate / race — ignore for preview
+        $registry[$name] = true;
+    }
+}
+
+function safe_add_filter(Environment $twig, array &$registry, string $name, callable $callable, array $options = []) {
+    if (isset($registry[$name])) return;
+    try {
+        $twig->addFilter(new TwigFilter($name, $callable, $options));
+        $registry[$name] = true;
+    } catch (\LogicException $e) {
+        $registry[$name] = true;
+    }
+}
+
+// -----------------------------
+// Load theme settings (if present) and defaults
+// -----------------------------
 $settings = [];
 if (file_exists(__DIR__ . '/configs/settings_data.json')) {
     $settings = json_decode(file_get_contents(__DIR__ . '/configs/settings_data.json'), true) ?: [];
 }
 
-// Provide some simple mock data your templates can use
-$context = [
-    'settings' => $settings,
-    'site_title' => $settings['name'] ?? 'Local Template Preview',
-    // slider images - adjust to whatever filenames exist in assets/uploads
-    'slides' => [
-        ['image' => 'assets/uploads/slider_1.jpg', 'title' => 'Slide One'],
-        ['image' => 'assets/uploads/slider_2.png', 'title' => 'Slide Two'],
-        ['image' => 'assets/uploads/slider_3.png', 'title' => 'Slide Three'],
-    ],
-    // sample product(s) (templates usually expect arrays/objects - open the twig files to match names)
-    'products' => [
-        [
-            'title' => 'Demo Product A',
-            'price' => '19.99',
-            'image' => 'assets/uploads/nopic_image.png',
-            'excerpt' => 'Short description here',
+$defaults = [
+    'banner_img_1' => 'assets/uploads/banner_img_1.png',
+    'banner_img_2' => 'assets/uploads/banner_img_2.png',
+    'banner_img_3' => 'assets/uploads/banner_img_3.png',
+    'banner_img_4' => 'assets/uploads/banner_img_4.png',
+    'banner_img_5' => 'assets/uploads/banner_img_5.png',
+    'banner_img_6' => 'assets/uploads/banner_img_6.png',
+    'banner_img_7' => 'assets/uploads/banner_img_7.png',
+    'banner_link_1' => '', 'banner_link_2' => '', 'banner_link_3' => '',
+    'banner_link_4' => '', 'banner_link_5' => '', 'banner_link_6' => '', 'banner_link_7' => '',
+    'banner_target_1' => 0, 'banner_target_2' => 0, 'banner_target_3' => 0,
+    'banner_target_4' => 0, 'banner_target_5' => 0, 'banner_target_6' => 0, 'banner_target_7' => 0,
+    'slide_status' => true, 'slide_varyant' => 'default',
+    'home_title' => 'Featured Products', 'featured_title' => 'Featured', 'popular_title' => 'Popular',
+    'new_title' => 'New', 'discounted_title' => 'Discounted', 'show_brands_carousel' => false,
+    'brands_title' => '', 'logo' => 'assets/uploads/logo.png', 'cart_title' => 'Cart',
+    'search_placeholder' => 'Search products...', 'use_search_auto_complete' => false,
+    'user_signup' => 'Sign up', 'user_login' => 'Login', 'user_myaccount' => 'My Account',
+    'user_logout' => 'Logout', 'label_new' => 'NEW', 'label_digital' => 'DIGITAL',
+    'label_soldout' => 'SOLD OUT', 'showcase_view' => 'View', 'addtocart_button' => 'Add to cart',
+    'nostock_button' => 'Notify me', 'navigation_showall' => 'Show all', 'name' => 'Local Template Preview',
+];
+
+$theme_settings = array_replace($defaults, is_array($settings) && isset($settings['settings']) ? $settings['settings'] : $settings);
+$theme = ['settings' => $theme_settings, 'name' => $theme_settings['name'] ?? 'Local Template Preview'];
+
+// -----------------------------
+// Basic mocks used by templates
+// -----------------------------
+$site = [
+    'menu_items' => [
+        'row1' => [
+            ['link' => '/about','target' => '','label' => 'About'],
+            ['link' => '/contact','target' => '','label' => 'Contact'],
+            ['link' => '/blog','target' => '','label' => 'Blog'],
+        ],
+        'row2' => [
+            ['link' => '/sale','target' => '','label' => 'Sale'],
         ],
     ],
 ];
 
-// Render the template you want to preview. If entry.twig is the main file:
+$visitor = ['isMember' => false];
+$preferences = ['member_signup' => true, 'default_currency' => 'USD', 'sales_allowed' => true];
+
+$navigationMenu = [
+    'settings' => ['useCategoryImage' => true, 'thirdLevelCategoryCount' => 6],
+    'categories' => [
+        ['name' => 'Clothing','url' => '/category/clothing','imageUrl' => 'assets/uploads/slider_picture_1.png','subCategories' => []],
+    ],
+];
+
+$brands = [
+    ['name'=>'Brand A','logo'=>'/assets/uploads/slider_picture_1.png','url'=>'/brand/1'],
+    ['name'=>'Brand B','logo'=>'/assets/uploads/slider_picture_2.png','url'=>'/brand/2'],
+];
+
+// -----------------------------
+// Asset resolver (maps logical asset path to a web path under project root)
+// -----------------------------
+$resolveAsset = function (string $path) {
+    if (!$path) return '';
+    if (preg_match('#^https?://#i', $path)) return $path;
+    $path = ltrim($path, '/');
+    $candidates = [
+        __DIR__ . '/' . $path,
+        __DIR__ . '/assets/' . $path,
+        __DIR__ . '/assets/uploads/' . $path,
+        __DIR__ . '/assets/images/' . $path,
+        __DIR__ . '/assets/javascript/' . $path,
+        __DIR__ . '/assets/css/' . $path,
+        __DIR__ . '/' . basename($path),
+    ];
+    foreach ($candidates as $c) {
+        if (file_exists($c)) {
+            $web = str_replace(__DIR__, '', $c);
+            $web = ltrim($web, '/');
+            return '/' . $web;
+        }
+    }
+    return '/assets/' . $path;
+};
+
+// -----------------------------
+// Register Twig helper shims (guarded; safe to call repeatedly)
+// -----------------------------
+safe_add_function($twig, $registeredFunctions, 'themeAsset', function ($path) use ($resolveAsset) {
+    return $resolveAsset($path);
+});
+
+safe_add_function($twig, $registeredFunctions, 'getNopicImageUrl', function () use ($resolveAsset) {
+    return $resolveAsset('assets/uploads/nopic_image.png');
+});
+
+safe_add_function($twig, $registeredFunctions, 'path', function ($route = 'entry', $params = []) {
+    $map = ['entry'=>'/','member_login'=>'/member/login','member_signup'=>'/member/signup','member_index'=>'/member','member_logout'=>'/member/logout','cart_index'=>'/cart','search'=>'/search'];
+    $url = $map[$route] ?? '#';
+    if (!empty($params) && is_array($params)) {
+        $q = http_build_query($params);
+        $url .= ($q ? '?' . $q : '');
+    }
+    return $url;
+});
+
+safe_add_function($twig, $registeredFunctions, 'getProducts', function ($key = 'home', $options = []) use ($resolveAsset) {
+    $sample = [];
+    for ($i = 1; $i <= 12; $i++) {
+        $price = rand(5,200) + rand(0,99)/100;
+        $hasDiscount = ($i % 3) === 0;
+        $discountedPrice = $hasDiscount ? round($price * (0.7 + (rand(0,20)/100)), 2) : null;
+        $brand = ['url' => '/brand/' . $i, 'name' => 'Brand ' . $i];
+        $image = $resolveAsset('assets/uploads/nopic_image.png');
+        $product = new PreviewProduct($i, ucfirst($key) . " Product {$i}", $price, $discountedPrice, $image, $brand);
+        if ($i % 4 === 0) $product->isNew = true;
+        if ($i % 5 === 0) $product->hasGift = true;
+        if ($i % 7 === 0) $product->realAmount = 0;
+        $sample[] = (object)['product' => $product];
+    }
+    if (is_array($options) && isset($options['limit'])) return array_slice($sample, 0, (int)$options['limit']);
+    return $sample;
+});
+
+// getBrandsJson — return JS-safe JSON string (use JSON_HEX_* to avoid breaking JS string quoted inside template)
+safe_add_function($twig, $registeredFunctions, 'getBrandsJson', function () use ($brands) {
+    return json_encode($brands, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES);
+}, ['is_safe' => ['html']]);
+
+// macro_global — find snippet candidates and render them
+safe_add_function($twig, $registeredFunctions, 'macro_global', function (Environment $env, $name, $variant = 'default') use ($theme, $site, $visitor, $preferences) {
+    $kebab = strtolower(preg_replace('/([a-z0-9])([A-Z])/', '$1-$2', $name));
+    $kebab = str_replace('_', '-', $kebab);
+    $candidates = [
+        "html/snippets/{$name}/{$variant}.twig",
+        "html/snippets/{$kebab}/{$variant}.twig",
+        "html/snippets/{$name}.twig",
+        "html/snippets/{$kebab}.twig",
+        "html/snippets/{$name}_{$variant}.twig",
+        "html/snippets/{$kebab}_{$variant}.twig",
+    ];
+    foreach ($candidates as $tpl) {
+        if ($env->getLoader()->exists($tpl)) {
+            return $env->render($tpl, [
+                'theme' => $theme, 'site' => $site, 'visitor' => $visitor, 'preferences' => $preferences,
+                'variant' => $variant, 'navigationMenu' => $env->getGlobals()['navigationMenu'] ?? null,
+            ]);
+        }
+    }
+    return '';
+}, ['needs_environment' => true, 'is_safe' => ['html']]);
+
+// Filters
+safe_add_filter($twig, $registeredFilters, 'money', function ($v) {
+    $n = is_numeric($v) ? (float)$v : floatval(preg_replace('/[^\d.-]/','',(string)$v));
+    return number_format($n, 2, '.', ',');
+});
+safe_add_filter($twig, $registeredFilters, 'currency', function ($v) {
+    return '$' . number_format((float)$v, 2);
+});
+
+// -----------------------------
+// Add Twig globals (before rendering)
+// -----------------------------
 try {
-    echo $twig->render('templates/default/entry.twig', $context);
-} catch (\Twig\Error\LoaderError $e) {
-    // If the template path differs, echo error to help debug
-    echo "<h2>Twig loader error</h2>";
-    echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+    $twig->addGlobal('theme', $theme);
+    $twig->addGlobal('site', $site);
+    $twig->addGlobal('visitor', $visitor);
+    $twig->addGlobal('preferences', $preferences);
+    $twig->addGlobal('navigationMenu', $navigationMenu);
+    $twig->addGlobal('brands', $brands);
+} catch (\LogicException $e) {
+    echo "<h2>Configuration error</h2><pre>Failed to register Twig globals: " . htmlspecialchars($e->getMessage()) . "</pre>";
+    exit(1);
 }
+
+// -----------------------------
+// Render theme entry template
+// -----------------------------
+try {
+    $body = $twig->render('html/templates/default/entry.twig', ['site_title' => $theme['name']]);
+} catch (\Throwable $e) {
+    echo "<h2>Twig render error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+    exit(1);
+}
+
+// -----------------------------
+// Third-party CDN assets to include (order matters)
+// -----------------------------
+// jQuery (required by theme JS)
+// Bootstrap 4.6 (CSS & JS; Popper required by bootstrap JS)
+// Font Awesome (icons)
+// Slick carousel (CSS & JS) - for .slick()
+// We load lazyload and elevatezoom from assets/javascript if present
+$jqueryCdn = 'https://code.jquery.com/jquery-3.6.0.min.js';
+$popperCdn = 'https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js';
+$bootstrapCss = 'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css';
+$bootstrapJs = 'https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js';
+$fontAwesomeCss = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
+$slickCss = 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css';
+$slickJs = 'https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js';
+
+$themeCss = $resolveAsset('assets/css/theme.css'); // compile scss -> css here if possible
+$themeJs  = $resolveAsset('assets/javascript/theme.js');
+$navJs    = $resolveAsset('assets/javascript/navigation-menu.js');
+$productJs = $resolveAsset('assets/javascript/product.js');
+$lazyJs   = $resolveAsset('assets/javascript/lazyload.min.js');
+$elevateJs = $resolveAsset('assets/javascript/jquery.elevatezoom.js');
+
+// -----------------------------
+// Output a minimal HTML wrapper that includes the required libs in order
+// -----------------------------
+?><!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title><?php echo htmlspecialchars($theme['name']); ?></title>
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="<?php echo htmlspecialchars($bootstrapCss); ?>">
+<!-- Slick CSS -->
+<link rel="stylesheet" href="<?php echo htmlspecialchars($slickCss); ?>">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="<?php echo htmlspecialchars($fontAwesomeCss); ?>">
+<!-- Theme CSS (compiled from SCSS if you have it; fallback minimal css can be used) -->
+<link rel="stylesheet" href="<?php echo htmlspecialchars($themeCss); ?>">
+
+</head>
+<body>
+
+<?php echo $body; ?>
+
+<!-- jQuery (first) -->
+<script src="<?php echo htmlspecialchars($jqueryCdn); ?>"></script>
+<!-- Popper (for Bootstrap 4) -->
+<script src="<?php echo htmlspecialchars($popperCdn); ?>"></script>
+<!-- Bootstrap JS -->
+<script src="<?php echo htmlspecialchars($bootstrapJs); ?>"></script>
+
+<!-- IdeaApp shim (minimal) so theme JS does not crash outside Ideasoft platform.
+     Expand this object if theme scripts reference more functions/properties. -->
+<script>
+window.IdeaApp = window.IdeaApp || {
+    helpers: {
+        getRouteGroup: function(){ return 'entry'; },
+        matchMedia: function(q){ return window.matchMedia ? window.matchMedia(q).matches : false; }
+    },
+    plugins: {
+        tab: function(){ /* no-op stub */ }
+    },
+    product: {
+        productTab: function(){ /* no-op stub */ }
+    },
+    // basic event helpers
+    on: function(){}, off: function(){}
+};
+</script>
+
+<!-- Slick JS -->
+<script src="<?php echo htmlspecialchars($slickJs); ?>"></script>
+
+<!-- Local 3rd-party libs from repo (if present) -->
+<?php if ($elevateJs): ?><script src="<?php echo htmlspecialchars($elevateJs); ?>"></script><?php endif; ?>
+<?php if ($lazyJs): ?><script src="<?php echo htmlspecialchars($lazyJs); ?>"></script><?php endif; ?>
+
+<!-- Theme JS files (after required libs) -->
+<?php if ($themeJs): ?><script src="<?php echo htmlspecialchars($themeJs); ?>"></script><?php endif; ?>
+<?php if ($navJs): ?><script src="<?php echo htmlspecialchars($navJs); ?>"></script><?php endif; ?>
+<?php if ($productJs): ?><script src="<?php echo htmlspecialchars($productJs); ?>"></script><?php endif; ?>
+
+</body>
+</html>
