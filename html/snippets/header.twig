@@ -1,0 +1,96 @@
+<header id="header">
+		<div class="header-top">
+			<div class="container">
+				<div class="row justify-content-end">
+					<div class="col-auto d-none d-lg-block">
+						<ul class="menu-items">
+							{% for menu_item in site.menu_items.row1 %}
+								<li>
+									<a href="{{ menu_item.link }}" target="{{ menu_item.target }}" rel="noopener">{{ menu_item.label }}</a>
+								</li>
+							{% endfor %}
+						</ul>
+					</div>
+				</div>
+			</div>
+		</div>
+	<div class="header-middle">
+		<div class="container">
+			<div class="header-middle-inside">
+				<div class="row justify-content-between align-items-center">
+					<div class="col">
+						<div class="logo">
+							<a href="{{ path('entry') }}" aria-label="Logo">
+								<img src="{{ themeAsset(theme.settings.logo) }}">
+							</a>
+						</div>
+					</div>
+					<div class="col-auto">
+						<div class="header-icons row justify-content-between">
+							<div class="col-auto">
+								<div class="user-menu">
+									{% if not visitor.isMember %}
+										<div class="user-menu-icon">
+											<a href="{{ path('member_login') }}" aria-label="Member Login">
+												<i class="fas fa-user"></i>
+											</a>
+										</div>
+										<div class="user-menu-text d-none d-lg-flex">
+											{% if preferences.member_signup %}
+												<a href="{{ path('member_signup') }}" aria-label="Member Signup">{{ theme.settings.user_signup }}</a>
+												<span>/</span>
+											{% endif %}
+											<a href="{{ path('member_login') }}" aria-label="Member Login">{{ theme.settings.user_login }}</a>
+										</div>
+									{% else %}
+										<div class="user-menu-icon">
+											<a href="{{ path('member_index') }}" aria-label="Member Profile">
+												<i class="fas fa-user"></i>
+											</a>
+											<i class="fas fa-check"></i>
+										</div>
+										<div class="user-menu-text d-none d-lg-flex">
+											<a href="{{ path('member_index') }}" aria-label="Member Profile">{{ theme.settings.user_myaccount }}</a>
+											<span>/</span>
+											<a href="{{ path('member_logout') }}" aria-label="Member Signup">{{ theme.settings.user_logout }}</a>
+										</div>
+									{% endif %}
+								</div>
+							</div>
+							<div class="col-auto">
+								<div class="cart-menu">
+									<a href="{{ path('cart_index') }}" aria-label="Cart">
+										<div class="cart-icon">
+											<div class="cart-amount" data-selector="cart-item-count"></div>
+											<i class="fas fa-shopping-cart"></i>
+										</div>
+										<div class="cart-title">{{ theme.settings.cart_title }}</div>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="header-bottom">
+		<div class="container">
+			<div class="header-bottom-inside">
+				<div class="row">
+					<div class="col-lg-9 d-none d-lg-block position-static">
+						{{ macro_global('navigationMenu') }}
+					</div>
+					<div class="col-lg-3 position-static">
+						<div class="search">
+							<form action="{{ path('search') }}" data-selector="search-form">
+								<input type="text" name="q" placeholder="{{ theme.settings.search_placeholder }}" aria-label="Search" {% if theme.settings.use_search_auto_complete %}class="auto-complete"{% endif %}>
+								<button><i class="fas fa-search"></i></button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</header>

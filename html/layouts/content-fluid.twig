@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="tr">
+	<head>
+		{% block page_styles %}{% endblock %}
+	</head>
+	<body class="current-page-{{ site.route.group }}-{{ site.route.name }}">
+		{% include 'html/snippets/header.twig' %}
+		<main id="main">
+			<section>
+				{% block breadcrumb %}{% endblock %}
+				{% block content %}{% endblock %}
+			</section>
+		</main>
+		<footer id="footer">
+			{% include 'html/snippets/footer.twig' %}
+		</footer>
+		{% include 'html/snippets/scripts.twig' %}
+		{% block page_scripts %}{% endblock %}
+	</body>
+</html>

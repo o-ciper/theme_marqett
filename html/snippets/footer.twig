@@ -1,0 +1,108 @@
+<div class="footer-top">
+	<div class="container">
+		<div class="footer-top-inside">
+			<div class="row">
+				<div class="col-lg-8">
+					{{ theme.settings.footer_links | raw }}
+				</div>
+				<div class="col-lg-4">
+					<div class="newsletter">
+						<div class="newsletter-title">
+							{% if theme.settings.newsletter_title | spaceless | length > 0 %}
+								<div><strong>{{ theme.settings.newsletter_title }}</strong></div>
+							{% endif %}
+							{% if theme.settings.newsletter_sub_title | spaceless | length > 0 %}
+								<span>{{ theme.settings.newsletter_sub_title }}</span>
+							{% endif %}
+						</div>
+						<div class="newsletter-content">
+							<form data-selector="newsletter-form">
+								<input type="email" id="newsletter-email" name="email" placeholder="{{ theme.settings.newsletter_placeholder }}" aria-label="Newsletter Email" autocomplete="off" >
+								<button type="submit" aria-label="Submit">{{ theme.settings.newsletter_button }}</button>
+							</form>
+						</div>
+					</div>
+					{% if theme.settings.facebook or theme.settings.instagram or theme.settings.twitter or theme.settings.pinterest or theme.settings.youtube or theme.settings.linkedin or theme.settings.whatsapp %}
+						<div class="footer-social">
+							{% if theme.settings.footer_social_title | spaceless | length > 0 %}
+								<div class="footer-social-title">
+									{{ theme.settings.footer_social_title }}
+								</div>
+							{% endif %}
+							<div class="footer-social-content row">
+								{% if theme.settings.facebook %}
+									<div class="col-auto">
+										<a class="footer-social-facebook" href="{{ theme.settings.facebook }}" target="_blank">
+											<i class="fab fa-facebook-f"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.instagram %}
+									<div class="col-auto">
+										<a class="footer-social-instagram" href="{{ theme.settings.instagram }}" target="_blank">
+											<i class="fab fa-instagram"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.twitter %}
+									<div class="col-auto">
+										<a class="footer-social-twitter" href="{{ theme.settings.twitter }}" target="_blank">
+											<i class="fab fa-twitter"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.pinterest %}
+									<div class="col-auto">
+										<a class="footer-social-pinterest" href="{{ theme.settings.pinterest }}" target="_blank">
+											<i class="fab fa-pinterest-p"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.youtube %}
+									<div class="col-auto">
+										<a class="footer-social-youtube" href="{{ theme.settings.youtube }}" target="_blank">
+											<i class="fab fa-youtube"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.linkedin %}
+									<div class="col-auto">
+										<a class="footer-social-linkedin" href="{{ theme.settings.linkedin }}" target="_blank">
+											<i class="fab fa-linkedin-in"></i>
+										</a>
+									</div>
+								{% endif %}
+								{% if theme.settings.whatsapp %}
+									<div class="col-auto">
+										<a class="footer-social-whatsapp" href="https://wa.me/9{{ theme.settings.whatsapp | replace({' ': ''}) }}" target="_blank">
+											<i class="fab fa-whatsapp"></i>
+										</a>
+									</div>
+								{% endif %}
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="footer-bottom">
+	<div class="container">
+		<div class="row justify-content-between">
+			{% if theme.settings.copyright %}
+				<div class="col-md-auto mb-4 mb-md-0">
+					<div class="copyright">{{ theme.settings.copyright | raw }}</div>
+				</div>
+			{% endif %}
+			<div class="col-md-auto">
+				<div class="secure">
+					<img src="{{ themeAsset('images/secure.png') }}" />
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="scroll-top">
+	<i class="fas fa-arrow-up"></i>
+</div>

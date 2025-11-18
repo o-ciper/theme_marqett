@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="tr">
+	<head>
+		{% block page_styles %}{% endblock %}
+	</head>
+	<body class="current-page-{{ site.route.group }}-{{ site.route.name }}">
+		{% include 'html/snippets/header.twig' %}
+		<main id="main">
+			<div class="container">
+				{% block breadcrumb %}{% endblock %}
+				<div class="row">
+					<aside class="col-12 col-md-4 col-lg-3">
+						<div id="left-block">
+							{{ macro_global('leftBlocks') }}
+						</div>
+					</aside>
+					<section class="col-12 col-md-8 col-lg-9">
+						{% block headContent %}{% endblock %}
+						{% block content %}{% endblock %}
+					</section>
+				</div>
+			</div>
+		</main>
+		<footer id="footer">
+			{% include 'html/snippets/footer.twig' %}
+		</footer>
+		{% include 'html/snippets/scripts.twig' %}
+		{% block page_scripts %}{% endblock %}
+	</body>
+</html>

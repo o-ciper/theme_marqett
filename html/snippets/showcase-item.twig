@@ -1,0 +1,76 @@
+<div class="showcase">
+	<div class="showcase-image-container">
+		<a class="showcase-label-container" href="{{ item.product.url }}" aria-label="Product Detail">
+			<div class="showcase-badges">
+				{% if item.product.isNew %}
+					<div class="new-label">{{ theme.settings.label_new }}</div>
+				{% endif %}
+				{% if item.product.hasGift %}
+					<div class="gift-label"><i class="fas fa-gift"></i></div>
+				{% endif %}
+			</div>
+			{% if item.product.isDigitalProduct %}
+				<div class="digital-label">{{ theme.settings.label_digital }}</div>
+			{% endif %}
+			{% if item.product.realAmount == 0 %}
+				<div class="sold-out-label"><span>{{ theme.settings.label_soldout }}</span></div>
+			{% endif %}
+		</a>
+		<div class="showcase-image">
+			<a href="{{ item.product.url }}" title="{{ item.product.fullName }}">
+				{% if theme.settings.use_lazy_load %}
+					<img class="lazyload" src="{{ themeAsset('images/loader.gif') }}" data-src="{{ item.product.primaryImage.thumbUrl | default(getNopicImageUrl()) }}" alt="{{ item.product.primaryImage.alt | default(item.product.fullName) }}">
+				{% else %}
+					<img src="{{ item.product.primaryImage.thumbUrl | default(getNopicImageUrl()) }}" alt="{{ item.product.primaryImage.alt | default(item.product.fullName) }}">
+				{% endif %}
+			</a>
+		</div>
+	</div>
+	<div class="showcase-content">
+		<div class="showcase-brand">
+			{% if item.product.brand %}
+				<a href="{{ item.product.brand.url }}">{{ item.product.brand.name }}</a>
+			{% endif %}
+		</div>
+		<div class="showcase-title">
+			<a href="{{ item.product.url }}" title="{{ item.product.fullName }}">{{ item.product.fullName }}</a>
+		</div>
+		{% if preferences.sales_allowed and (showcase.type != "CombineProducts" or item.product.price > 0)  %}
+			<div class="showcase-price-container{% if item.product.isDiscounted %} has-discount{% endif %}">
+				{% if item.product.isDiscounted and preferences.sales_allowed %}
+					<div>
+						<div class="discount-label">%{{ item.product.discountPercent }}</div>
+					</div>
+				{% endif %}
+				<div class="showcase-price">
+					{% if item.product.isDiscounted %}
+						<div class="showcase-price-old">
+							{{ item.product.priceWithTax(preferences.default_currency) | money ~ ' ' ~ preferences.default_currency }}
+						</div>
+					{% endif %}
+					<div class="showcase-price-new">
+						{{ item.product.discountedPriceWithTax(preferences.default_currency) | money ~ ' ' ~ preferences.default_currency }}
+					</div>
+				</div>
+			</div>
+		{% else %}
+			<div class="showcase-price"></div>
+		{% endif %}
+	</div>
+	<div class="showcase-buttons">
+		<div>
+			<a href="{{ item.product.url }}" class="showcase-view"><i class="fas fa-search"></i><span>{{ theme.settings.showcase_view }}</span></a>
+		</div>
+		{% if preferences.sales_allowed %}
+			{% if item.product.realAmount > 0 %}
+				<div>
+					<a href="javascript:void(0);" class="add-to-cart-button" data-selector="add-to-cart" data-context="showcase" data-product-id="{{ item.product.id }}"><i class="fas fa-shopping-cart"></i><span>{{ theme.settings.addtocart_button }}</span></a>
+				</div>
+			{% else %}
+				<div>
+					<a href="javascript:void(0);" class="no-stock-button"><i class="fas fa-shopping-cart"></i><span>{{ theme.settings.nostock_button }}</span></a>
+				</div>
+			{% endif %}
+		{% endif %}
+	</div>
+</div>

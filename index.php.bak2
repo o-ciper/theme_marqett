@@ -1,0 +1,158 @@
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
+
+// Configure Twig to use project root so templates that reference "html/..." resolve
+$loader = new FilesystemLoader(__DIR__);
+$twig = new Environment($loader, [
+    'cache' => false,
+    'auto_reload' => true,
+    'debug' => true,
+]);
+
+// Load theme settings if available, otherwise create reasonable defaults
+$settings = [];
+if (file_exists(__DIR__ . '/configs/settings_data.json')) {
+    $settings = json_decode(file_get_contents(__DIR__ . '/configs/settings_data.json'), true) ?: [];
+}
+
+// Ensure keys used by the template exist
+$defaults = [
+    'banner_img_1' => 'assets/uploads/banner_img_1.png',
+    'banner_img_2' => 'assets/uploads/banner_img_2.png',
+    'banner_img_3' => 'assets/uploads/banner_img_3.png',
+    'banner_img_4' => 'assets/uploads/banner_img_4.png',
+    'banner_img_5' => 'assets/uploads/banner_img_5.png',
+    'banner_img_6' => 'assets/uploads/banner_img_6.png',
+    'banner_img_7' => 'assets/uploads/banner_img_7.png',
+    'banner_link_1' => '',
+    'banner_link_2' => '',
+    'banner_link_3' => '',
+    'banner_link_4' => '',
+    'banner_link_5' => '',
+    'banner_link_6' => '',
+    'banner_link_7' => '',
+    'banner_target_1' => 0,
+    'banner_target_2' => 0,
+    'banner_target_3' => 0,
+    'banner_target_4' => 0,
+    'banner_target_5' => 0,
+    'banner_target_6' => 0,
+    'banner_target_7' => 0,
+    'slide_status' => true,
+    'slide_varyant' => 'default',
+    'home_title' => 'Featured Products',
+    'featured_title' => 'Featured',
+    'popular_title' => 'Popular',
+    'new_title' => 'New',
+    'discounted_title' => 'Discounted',
+    'show_brands_carousel' => false,
+    'brands_title' => '',
+    'name' => 'Local Template Preview',
+];
+$theme_settings = array_replace($defaults, is_array($settings) && isset($settings['settings']) ? $settings['settings'] : $settings);
+
+// Theme global available to templates as "theme"
+$theme = [
+    'settings' => $theme_settings,
+    'name' => $theme_settings['name'] ?? 'Local Template Preview',
+];
+
+// Helper: resolve an asset path in a few common locations
+$resolveAsset = function ($path) {
+    if (!$path) return '';
+    // If absolute URL, return as-is
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    // Normalize leading slash
+    $path = ltrim($path, '/');
+
+    // Common candidates
+    $candidates = [
+        __DIR__ . '/' . $path,
+        __DIR__ . '/assets/' . $path,
+        __DIR__ . '/assets/uploads/' . $path,
+        __DIR__ . '/assets/uploads/' . basename($path),
+        __DIR__ . '/' . basename($path),
+    ];
+    foreach ($candidates as $c) {
+        if (file_exists($c)) {
+            // Return a web path relative to server root
+            $web = str_replace(__DIR__, '', $c);
+            $web = ltrim($web, '/');
+            return '/' . $web;
+        }
+    }
+    // Fallback: return original path prefixed so browser can try relative path
+    return '/' . $path;
+};
+
+// Register themeAsset($path) used in the template
+$twig->addFunction(new TwigFunction('themeAsset', function ($path) use ($resolveAsset) {
+    return $resolveAsset($path);
+}));
+
+// Register getProducts(key, options) — returns sample products so lists render
+$twig->addFunction(new TwigFunction('getProducts', function ($key = 'home', $options = []) use ($resolveAsset) {
+    // Simple sample product generator
+    $sample = [];
+    for ($i = 1; $i <= 8; $i++) {
+        $sample[] = [
+            'product_id' => $i,
+            'title' => ucfirst($key) . " Product {$i}",
+            'price' => number_format( rand(5,200) + rand(0,99)/100, 2),
+            'image' => $resolveAsset('assets/uploads/nopic_image.png'),
+            'excerpt' => 'Sample description for ' . ucfirst($key) . ' product ' . $i,
+        ];
+    }
+    // Respect a possible 'limit' option
+    if (is_array($options) && isset($options['limit'])) {
+        return array_slice($sample, 0, (int)$options['limit']);
+    }
+    return $sample;
+}));
+
+// Register macro_global(name, variant) — render a snippet or sub-template
+$twig->addFunction(new TwigFunction('macro_global', function (Environment $env, $name, $variant = 'default') use ($theme) {
+    // Candidate templates (search order)
+    $candidates = [
+        "html/snippets/{$name}/{$variant}.twig",
+        "html/snippets/{$name}.twig",
+        "html/snippets/{$name}_{$variant}.twig",
+        "html/snippets/{$name}.twig", // fallback
+    ];
+    foreach ($candidates as $tpl) {
+        if ($env->getLoader()->exists($tpl)) {
+            // Provide theme and variant to the snippet
+            return $env->render($tpl, ['theme' => $theme, 'variant' => $variant]);
+        }
+    }
+    // If nothing found return empty string so template won't break
+    return '';
+}, ['needs_environment' => true, 'is_safe' => ['html']]));
+
+// Add any small helpers your twig templates might expect (currency filter, etc.)
+$twig->addFilter(new \Twig\TwigFilter('currency', function ($v) {
+    return '$' . number_format((float)$v, 2);
+}));
+
+// Expose theme as global
+$twig->addGlobal('theme', $theme);
+
+// Render the entry template the theme expects
+try {
+    echo $twig->render('html/templates/default/entry.twig', [
+        // any extra context you want templates to see
+        'site_title' => $theme['name'],
+    ]);
+} catch (\Twig\Error\LoaderError $e) {
+    echo "<h2>Twig loader error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+} catch (\Twig\Error\RuntimeError $e) {
+    echo "<h2>Twig runtime error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+} catch (\Twig\Error\SyntaxError $e) {
+    echo "<h2>Twig syntax error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+}

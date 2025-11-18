@@ -1,0 +1,41 @@
+{% if product.promotions | length > 0 %}
+	<div class="promotion-wrapper">
+		<div class="promotion-title">
+			<h4>{{ theme.settings.promotion_title }}</h4>
+		</div>
+		<div class="promotion-content">
+			{% for promotion in product.promotions %}
+				<div class="promotion-row">
+					<div class="row">
+						<div class="col-2 col-md-1 pr-0">
+							<div class="promotion-icon">
+								{% if promotion.type == 'free' %}
+									<i class='fas fa-gift'></i>
+								{% else %}
+									<i class='fa fa-tags'></i>
+								{% endif %}
+							</div>
+						</div>
+						<div class="col-10 col-md-8 pl-0 pr-md-0">
+							<div class="promotion-info">
+								<div><strong>{{ promotion.title | raw }}</strong></div>
+								<span>{{ promotion.description | raw }}</span>
+							</div>
+						</div>
+						{% if promotion.selected or promotion.isEligible %}
+							<div class="col-12 col-md-3 pl-md-0">
+								<div class="promotion-button">
+									{% if promotion.selected %}
+										<button type="button" class="btn btn-sm btn-block btn-secondary">{{ theme.settings.chosen_promotion }}</button>
+									{% elseif promotion.isEligible %}
+										<button type="button" class="btn btn-sm btn-block btn-primary" data-selector="{{ promotion.optionedProductSelection ? 'select-optioned-product-promotion' : 'select-promotion'}}" data-promotion-id="{{ promotion.id }}">{{ theme.settings.choose_promotion }}</button>
+									{% endif %}
+								</div>
+							</div>
+						{% endif %}
+					</div>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+{% endif %}

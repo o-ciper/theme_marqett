@@ -1,0 +1,211 @@
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
+use Twig\TwigFilter;
+
+// Configure Twig
+$loader = new FilesystemLoader(__DIR__);
+$twig = new Environment($loader, [
+    'cache' => false,
+    'auto_reload' => true,
+    'debug' => true,
+]);
+
+// Load theme settings if available
+$settings = [];
+if (file_exists(__DIR__ . '/configs/settings_data.json')) {
+    $settings = json_decode(file_get_contents(__DIR__ . '/configs/settings_data.json'), true) ?: [];
+}
+
+// Defaults for theme.settings keys used by templates
+$defaults = [
+    'banner_img_1' => 'assets/uploads/banner_img_1.png',
+    'banner_img_2' => 'assets/uploads/banner_img_2.png',
+    'banner_img_3' => 'assets/uploads/banner_img_3.png',
+    'banner_img_4' => 'assets/uploads/banner_img_4.png',
+    'banner_img_5' => 'assets/uploads/banner_img_5.png',
+    'banner_img_6' => 'assets/uploads/banner_img_6.png',
+    'banner_img_7' => 'assets/uploads/banner_img_7.png',
+    'banner_link_1' => '',
+    'banner_link_2' => '',
+    'banner_link_3' => '',
+    'banner_link_4' => '',
+    'banner_link_5' => '',
+    'banner_link_6' => '',
+    'banner_link_7' => '',
+    'banner_target_1' => 0,
+    'banner_target_2' => 0,
+    'banner_target_3' => 0,
+    'banner_target_4' => 0,
+    'banner_target_5' => 0,
+    'banner_target_6' => 0,
+    'banner_target_7' => 0,
+    'slide_status' => true,
+    'slide_varyant' => 'default',
+    'home_title' => 'Featured Products',
+    'featured_title' => 'Featured',
+    'popular_title' => 'Popular',
+    'new_title' => 'New',
+    'discounted_title' => 'Discounted',
+    'show_brands_carousel' => false,
+    'brands_title' => '',
+    'logo' => 'assets/uploads/logo.png',
+    'cart_title' => 'Cart',
+    'search_placeholder' => 'Search products...',
+    'use_search_auto_complete' => false,
+    'user_signup' => 'Sign up',
+    'user_login' => 'Login',
+    'user_myaccount' => 'My Account',
+    'user_logout' => 'Logout',
+    'name' => 'Local Template Preview',
+];
+
+$theme_settings = array_replace($defaults, is_array($settings) && isset($settings['settings']) ? $settings['settings'] : $settings);
+
+// Expose theme global
+$theme = [
+    'settings' => $theme_settings,
+    'name' => $theme_settings['name'] ?? 'Local Template Preview',
+];
+
+// Simple site data with menu_items expected by header.twig
+$site = [
+    'menu_items' => [
+        'row1' => [
+            ['link' => '/about', 'target' => '', 'label' => 'About'],
+            ['link' => '/contact', 'target' => '', 'label' => 'Contact'],
+            ['link' => '/blog', 'target' => '', 'label' => 'Blog'],
+        ],
+    ],
+];
+
+// Mock visitor and preferences
+$visitor = [
+    'isMember' => false, // toggle true to see "logged in" UI
+];
+
+$preferences = [
+    'member_signup' => true,
+];
+
+// Helper: resolve asset file paths to web paths (works with php -S serving project root)
+$resolveAsset = function ($path) {
+    if (!$path) return '';
+    if (preg_match('#^https?://#i', $path)) {
+        return $path;
+    }
+    $path = ltrim($path, '/');
+    $candidates = [
+        __DIR__ . '/' . $path,
+        __DIR__ . '/assets/' . $path,
+        __DIR__ . '/assets/uploads/' . $path,
+        __DIR__ . '/assets/uploads/' . basename($path),
+        __DIR__ . '/' . basename($path),
+    ];
+    foreach ($candidates as $c) {
+        if (file_exists($c)) {
+            $web = str_replace(__DIR__, '', $c);
+            $web = ltrim($web, '/');
+            return '/' . $web;
+        }
+    }
+    return '/' . $path;
+};
+
+// themeAsset(path)
+$twig->addFunction(new TwigFunction('themeAsset', function ($path) use ($resolveAsset) {
+    return $resolveAsset($path);
+}));
+
+// getProducts(key, options) -> returns sample products
+$twig->addFunction(new TwigFunction('getProducts', function ($key = 'home', $options = []) use ($resolveAsset) {
+    $sample = [];
+    for ($i = 1; $i <= 12; $i++) {
+        $sample[] = [
+            'product_id' => $i,
+            'title' => ucfirst($key) . " Product {$i}",
+            'price' => number_format(rand(5,200) + rand(0,99)/100, 2),
+            'image' => $resolveAsset('assets/uploads/nopic_image.png'),
+            'excerpt' => 'Sample description for ' . ucfirst($key) . ' product ' . $i,
+        ];
+    }
+    if (is_array($options) && isset($options['limit'])) {
+        return array_slice($sample, 0, (int)$options['limit']);
+    }
+    return $sample;
+}));
+
+// path(routeName, params?) -> basic URL mapping for template links
+$twig->addFunction(new TwigFunction('path', function ($route = 'entry', $params = []) {
+    $map = [
+        'entry' => '/',
+        'member_login' => '/member/login',
+        'member_signup' => '/member/signup',
+        'member_index' => '/member',
+        'member_logout' => '/member/logout',
+        'cart_index' => '/cart',
+        'search' => '/search',
+    ];
+    $url = isset($map[$route]) ? $map[$route] : '#';
+    if (!empty($params) && is_array($params)) {
+        $query = http_build_query($params);
+        $url .= ($query ? '?' . $query : '');
+    }
+    return $url;
+}));
+
+// macro_global(name, variant) -> locate snippet templates (supports camelCase/kebab-case and subfolders)
+// returns rendered HTML of the snippet (safe)
+$twig->addFunction(new TwigFunction('macro_global', function (Environment $env, $name, $variant = 'default') use ($theme, $site, $visitor, $preferences) {
+    // normalize name: try original, kebab-case, lower-case
+    $kebab = strtolower(preg_replace('/([a-z0-9])([A-Z])/', '$1-$2', $name));
+    $kebab = str_replace('_', '-', $kebab);
+
+    $candidates = [
+        "html/snippets/{$name}/{$variant}.twig",
+        "html/snippets/{$kebab}/{$variant}.twig",
+        "html/snippets/{$name}.twig",
+        "html/snippets/{$kebab}.twig",
+        "html/snippets/{$name}_{$variant}.twig",
+        "html/snippets/{$kebab}_{$variant}.twig",
+    ];
+    foreach ($candidates as $tpl) {
+        if ($env->getLoader()->exists($tpl)) {
+            return $env->render($tpl, [
+                'theme' => $theme,
+                'site' => $site,
+                'visitor' => $visitor,
+                'preferences' => $preferences,
+                'variant' => $variant,
+            ]);
+        }
+    }
+    return '';
+}, ['needs_environment' => true, 'is_safe' => ['html']]));
+
+// Add currency filter and any small helpers
+$twig->addFilter(new TwigFilter('currency', function ($v) {
+    return '$' . number_format((float)$v, 2);
+}));
+
+// Expose globals used by templates
+$twig->addGlobal('theme', $theme);
+$twig->addGlobal('site', $site);
+$twig->addGlobal('visitor', $visitor);
+$twig->addGlobal('preferences', $preferences);
+
+// Render entry template
+try {
+    echo $twig->render('html/templates/default/entry.twig', [
+        'site_title' => $theme['name'],
+    ]);
+} catch (\Twig\Error\LoaderError $e) {
+    echo "<h2>Twig loader error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+} catch (\Twig\Error\RuntimeError $e) {
+    echo "<h2>Twig runtime error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+} catch (\Twig\Error\SyntaxError $e) {
+    echo "<h2>Twig syntax error</h2><pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+}

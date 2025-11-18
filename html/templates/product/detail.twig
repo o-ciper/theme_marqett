@@ -1,0 +1,427 @@
+{% extends 'html/layouts/content-only.twig' %}
+{% block page_scripts %}
+	<script type="text/javascript" src="{{ themeAsset('javascript/jquery.elevatezoom.js') }}"></script>
+	<script type="text/javascript" src="{{ themeAsset('javascript/product.js') }}"></script>
+{% endblock %}
+{% block content %}
+<div id="product-detail-container">
+	{% include 'html/snippets/product/breadcrumb.twig' %}
+	<div class="product-area-top">
+		<div class="row no-gutters mb-4 mb-md-5">
+			<div class="col-lg-6 col-xl-7 mb-4 mb-lg-0">
+				<div class="product-left">
+					<div class="product-image">
+						<div class="showcase-badges">
+							{% if product.isNew %}
+								<div class="new-label">{{ theme.settings.label_new }}</div>
+							{% endif %}
+							{% if product.hasGift %}
+								<div class="gift-label"><i class="fas fa-gift"></i></div>
+							{% endif %}
+						</div>
+						{% if product.isDigitalProduct %}
+							<div class="digital-label">{{ theme.settings.label_digital }}</div>
+						{% endif %}
+						<div id="product-primary-image">
+							{% if product.images | length > 0 %}
+								<img id="primary-image" alt="{{ product.primaryImage.alt | default(product.fullName) }}" src="{{ product.primaryImage.originalUrl }}" data-zoom-image="{{ product.primaryImage.originalUrl }}" />
+							{% else %}
+								<img class="product-no-picture" alt="{{ product.fullName }}" src="{{ getNopicImageUrl() }}" />
+							{% endif %}
+						</div>
+					</div>
+					{% if product.images | length > 0 %}
+						<div class="product-thumb-image-container">
+							<div id="product-thumb-image">
+								{% for image in product.images %}
+									{% if image.thumbUrl %}
+										<div class="thumb-item">
+											<div>
+												<a href="#" data-image="{{ image.originalUrl }}" data-zoom-image="{{ image.originalUrl }}">
+													<img src="{{ image.thumbUrl }}" alt="{{ image.alt | default(product.fullName) }}">
+												</a>
+											</div>
+										</div>
+									{% endif %}
+								{% endfor %}
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-lg-6 col-xl-5">
+				<div class="product-right">
+					<div class="product-title">
+						<h1>{{ product.fullName }}</h1>
+					</div>
+					{% if preferences.sales_allowed %}
+						<div class="product-price-container{% if product.isDiscounted %} has-discount{% endif %}">
+							{% if product.isDiscounted %}
+								<div>
+									<div class="discount-label">%{{ product.discountPercent }}</div>
+								</div>
+							{% endif %}
+							<div class="product-price">
+								{% if product.isDiscounted %}
+									<div class="product-price-new">
+										{{ product.discountedPriceWithTax(preferences.default_currency) | money }} {{ preferences.default_currency }}
+									</div>
+								{% endif %}
+								<div class="product-price-old">
+									{{ product.priceWithTax(preferences.default_currency) | money }} {{ preferences.default_currency }}
+								</div>
+							</div>
+						</div>
+					{% endif %}
+					<div class="product-list-container">
+						{% if product.categories | length > 0 and theme.settings.display_category_detail %}
+							<div class="product-list-row product-categories">
+								<div class="product-list-title">{{ getLang("_Category_") }}</div>
+								<div class="product-list-content">
+									<span>
+										{% for category in product.categories %}
+											<a href='{{ category.url }}' title="{{ category.name ~ ' ' ~ theme.settings.detail_category_text }}">{{ category.name }}</a>
+											{% if not loop.last %}<span>, </span>{% endif %}
+										{% endfor %}
+									</span>
+								</div>
+							</div>
+						{% endif %}
+						{% if product.brand and theme.settings.display_brand_detail %}
+							<div class="product-list-row product-brands">
+								<div class="product-list-title">{{ getLang("_Brand_") }}</div>
+								<div class="product-list-content">
+									<a href="{{ product.brand.url }}" title="{{ product.brand.name ~ ' ' ~ theme.settings.detail_brand_text }}">{{ product.brand.name }}</a>
+								</div>
+							</div>
+						{% endif %}
+						{% if product.collections | length > 0 and theme.settings.display_collection_detail %}
+							<div class="product-list-row product-collections">
+								<div class="product-list-title">{{ getLang("_Collection_") }}</div>
+								<div class="product-list-content">
+									<span>
+										{% for collection in product.collections %}
+											<a href='{{ collection.url }}' title="{{ collection.name }}">{{ collection.name }}</a>
+											{% if not loop.last %}<span>, </span>{% endif %}
+										{% endfor %}
+									</span>
+								</div>
+							</div>
+						{% endif %}
+						{% if theme.settings.display_sku %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ getLang("_StockCode_") }}</div>
+								<div class="product-list-content">{{ product.sku }}</div>
+							</div>
+						{% endif %}
+						{% for selectionGroup in product.selectionGroups %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ selectionGroup.name }}</div>
+								<div class="product-list-content">
+									<div class="selectbox">
+										<select class="form-control" data-selector="selection-group" data-id="{{ selectionGroup.id }}" data-name="{{ selectionGroup.name }}">
+											<option value="">{{ getLang("_Choose_") }}</option>
+											{% for selection in selectionGroup.selections %}
+												<option value="{{ selection.name }}">
+													{{ selection.name }}
+												</option>
+											{% endfor %}
+										</select>
+									</div>
+								</div>
+							</div>
+						{% endfor %}
+						{% for labelGroup in product.labelGroups %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ labelGroup.name }}</div>
+								<div class="product-list-content">
+									<span>
+										{% for label in labelGroup.labels %}
+											<a href="{{ label.url }}" title="{{ label.name ~ ' ' ~ theme.settings.detail_label_text }}">
+												{{ label.name }}
+											</a>
+											{% if not loop.last %}<span>, </span>{% endif %}
+										{% endfor %}
+									</span>
+								</div>
+							</div>
+						{% endfor %}
+						{% for extraInfo in product.extraInfos %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ extraInfo.name }}</div>
+								<div class="product-list-content">{{ extraInfo.value }}</div>
+							</div>
+						{% endfor %}
+						{% if product.hasGift and product.gift %}
+							<div class="product-list-row">
+								<div class="product-list-title">
+									{{ getLang('_Gift_') }}
+								</div>
+								<div class="product-list-content">{{ product.gift }}</div>
+							</div>
+						{% endif %}
+						{% if product.hasWarranty %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ getLang("_Warranty_") }}</div>
+								<div class="product-list-content">{{ product.warranty ~ ' ' ~ getLang("_Month_") }}</div>
+							</div>
+						{% endif %}
+						{% if product.marketPriceDetail %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ getLang("_MarketPrice_") }}</div>
+								<div class="product-list-content">
+									{{ product.marketPriceDetail | raw }}
+								</div>
+							</div>
+						{% endif %}
+						{% if product.isEligibleRetailerComparisonPrice and theme.settings.display_retailer_comparison_price %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ getLang("_Price_") }}</div>
+								<div class="product-list-content">
+									{{ product.retailerComparisonPrice | money }} {{ product.currency }} {% if product.tax > 0 %} + {{ getLang("_Tax_") }} {% endif %}
+								</div>
+							</div>
+						{% endif %}
+						{% if preferences.sales_allowed and theme.settings.display_without_tax_price %}
+							<div class="product-list-row">
+								<div class="product-list-title">
+									{% if product.isEligibleRetailerComparisonPrice and theme.settings.display_retailer_comparison_price %}
+										{{ getLang("_PartnerPrice_") }}
+									{% elseif preferences.sales_allowed %}
+										{{ getLang("_Price_") }}
+									{% endif %}
+								</div>
+								<div class="product-list-content">{{ product.priceWithoutTax(product.currency) | money }} {{ product.currency }} {% if product.tax > 0 %} + {{ getLang("_Tax_") }} {% endif %} </div>
+							</div>
+						{% endif %}
+						{% if product.isEligibleMoneyOrderDiscount %}
+							<div class="product-list-row">
+								<div class="product-list-title">{{ getLang("_MoneyOrder_") }}</div>
+								<div class="product-list-content">
+									{{ product.moneyOrderPriceWithTax(preferences.default_currency) | money }} {{ preferences.default_currency }}
+									{% if product.isEligibleMoneyOrderDiscount %}
+										{{ getLang("_BankTransferMsg_") | replace({'(arg0)' : product.moneyOrderDiscount | money }) }}
+									{% endif %}
+								</div>
+							</div>
+						{% endif %}
+						{% if product.lowestPrice and theme.settings.display_product_lowest_price %}
+							<div class="product-lowest-price">
+								<div>{{ getLang("_LowestInstallment_") | replace({'(arg0)' : (product.lowestPrice | money) ~ ' ' ~ preferences.default_currency }) }}</div>
+							</div>
+						{% endif %}
+					</div>
+					{% if product.isVariantAvailable %}
+						<div class="product-options">
+							<div class="product-options-title">{{ getLang("_Options_") }}</div>
+							<div class="product-options-content">
+								{% include "html/snippets/product/option.twig" %}
+							</div>
+						</div>
+					{% endif %}
+					{% if product.customization  %}
+						<div class="product-list-block">
+							{% include 'html/snippets/product/customization.twig' %}
+						</div>
+					{% endif %}
+					{% if product.buttons | length > 0 %}
+						<div class="product-cargo-buttons row">
+							{% for productButton in product.buttons %}
+								<div class="col-6 col-md-auto">
+									<div class="product-cargo-button {{ productButton.name }}">
+										<i></i>
+										<span>{{ getLang('_' ~ productButton.name ~ '_') }}</span>
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+					{% endif %}
+					{% if preferences.sales_allowed %}
+						<div class="product-cart-buttons">
+							{% if product.isAvailableForSales %}
+								{% if theme.settings.qtytype == "select" %}
+									<div class="product-qty-wrapper">
+										<div class="product-qty" data-selector="qty-wrapper">
+											<select name="qty-input" id="qty-input" data-selector="qty" data-context="detail" data-stocktype="{{ product.stockTypeLabel }}" data-stockamount='{{ product.stockAmount }}' value="1" aria-label="Quantity">
+												{% for i in 1..10 %}
+													<option value="{{ i }}">{{ i }}</option>
+												{% endfor %}
+											</select>
+										</div>
+									</div>
+								{% elseif theme.settings.qtytype == "textbox" %}
+									<div class="product-qty-wrapper">
+										<div class="product-qty" data-selector="qty-wrapper">
+											<div>
+												<input type="text" id="qty-input" data-selector="qty" data-context="detail" data-stocktype="{{ product.stockTypeLabel }}" data-stockamount='{{ product.stockAmount }}' value="1" aria-label="Quantity">
+											</div>
+										</div>
+									</div>
+								{% endif %}
+								{% if product.realAmount > 0 %}
+									<div class="product-buttons-wrapper">
+										<div class="product-buttons-row">
+											<div>
+												<a href="javascript:void(0);" class="add-to-cart-button" data-selector="add-to-cart" data-context="detail" data-product-id="{{ product.id }}">
+													<i class="fas fa-shopping-cart"></i>
+													<span>{{ theme.settings.addtocart_button }}</span>
+												</a>
+											</div>
+											<div>
+												<a href="javascript:void(0);" class="quick-order-button" data-selector="add-to-cart" data-context="quick" data-product-id="{{ product.id }}">{{ theme.settings.quickorder_button }}</a>
+											</div>
+										</div>
+									</div>
+								{% else %}
+									<div class="product-buttons-wrapper">
+										<div class="product-buttons-row">
+											<div>
+												<a href="javascript:void(0);" class="no-stock-button">{{ theme.settings.productincart_button }}</a>
+											</div>
+										</div>
+									</div>
+								{% endif %}
+							{% elseif product.stockAmount == 0 %}
+								<div class="product-buttons-wrapper">
+									<div class="product-buttons-row">
+										<div>
+											<a href="javascript:void(0);" class="remind-me-button" data-selector="stock-warning">{{ theme.settings.remindme_button }}</a>
+										</div>
+									</div>
+								</div>
+							{% endif %}
+						</div>
+					{% endif %}
+					{% if product.subscription and product.isAvailableForSales %}
+						<div class="product-subscription">
+							{% include 'html/snippets/product/subscription.twig' %}
+						</div>
+					{% endif %}
+					<div id="product-user-buttons" class="row no-gutters">
+						<div class="col-3">
+							<a href="javascript:void(0);" class="add-my-favorites{{ isFavoriteProduct(product.id) ? ' favorite-product' }}" data-selector="add-my-favorites" data-product-id="{{ product.id }}" aria-label="Add To Favorites">
+								<i class="{{ isFavoriteProduct(product.id) ? 'fas' : 'far'}} fa-heart"></i>
+								<span data-favorite-product="{{ theme.settings.favorite_product }}" data-add-to-favorites="{{ theme.settings.addtofavorites }}"></span>
+							</a>
+						</div>
+						<div class="col-3">
+							<a href="javascript:void(0);" class="recommend-product" data-selector="recommend-product">
+								<i class="far fa-envelope"></i>
+								<span>{{ theme.settings.recommend_product }}</span>
+							</a>
+						</div>
+						<div class="col-3">
+							<a href="javascript:void(0);" class="add-comment" data-selector="add-comment">
+								<i class="far fa-comment-dots"></i>
+								<span>{{ theme.settings.add_comment }}</span>
+							</a>
+						</div>
+						{% if product.isPriceDiscountNotifiable %}
+							<div class="col-3">
+								<a href="javascript:void(0);" class="price-warning" data-selector="price-warning">
+									<i class="far fa-bell"></i>
+									<span>{{ theme.settings.price_warning }}</span>
+								</a>
+							</div>
+						{% endif %}
+					</div>
+					{% if theme.settings.use_social_links %}
+						<div class="product-social">
+							<div class="product-social-title">{{ theme.settings.share_product }}</div>
+							<div class="product-social-content">
+								<a href="javascript:void(0);" class="product-social-facebook" data-selector="share-link" data-type="facebook">
+									<i class="fab fa-facebook-f"></i>
+								</a>
+								<a href="javascript:void(0);" class="product-social-twitter" data-selector="share-link" data-type="twitter">
+									<i class="fab fa-twitter"></i>
+								</a>
+								<a href="javascript:void(0);" class="product-social-pinterest" data-selector="share-link" data-type="pinterest">
+									<i class="fab fa-pinterest-p"></i>
+								</a>
+								<a href="javascript:void(0);" class="product-social-whatsapp" data-selector="share-link" data-type="whatsapp">
+									<i class="fab fa-whatsapp"></i>
+								</a>
+							</div>
+						</div>
+					{% endif %}
+					{% if theme.settings.display_compare_button %}
+						<div class="product-compare">
+							<a href="javascript:void(0);" class="{{ isComparedProduct(product.id) ? ' active' : '' }}" data-selector="compare-check" data-product-id="{{ product.id }}">
+								<i class="fas fa-exchange-alt"></i>
+								<span>{{ getLang("_Compare_") }}</span>
+							</a>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="product-area-bottom">
+		{% include 'html/snippets/product/promotion.twig' %}
+		{% if product.isDigitalProduct %}
+			<div class="alert alert-warning" id="digital-product-warning">{{ getLang("_DigitalProductWarning_") }}</div>
+		{% endif %}
+		{% include 'html/snippets/product/tab.twig' %}
+		{% if similar_product_showcase_items | length > 0 %}
+			<div class="default-products similar-products mb-4 mb-md-5">
+				<div class="products-header">
+					<span>{{ theme.settings.similar_products }}</span>
+				</div>
+				<div class="products-content row">
+					{% for item in similar_product_showcase_items %}
+						<div class="product-item col-auto">
+							{% include 'html/snippets/showcase-item.twig' %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+		{% if offered_product_showcase_items | length > 0 %}
+			<div class="default-products offered-products mb-4 mb-md-5">
+				<div class="products-header">
+					<span>{{ theme.settings.offered_products }}</span>
+				</div>
+				<div class="products-content row">
+					{% for item in offered_product_showcase_items %}
+						<div class="product-item col-auto">
+							{% include 'html/snippets/showcase-item.twig' %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+		{% if combine_product_showcase_items | length > 0 %}
+			<div class="default-products offered-products mb-4 mb-md-5">
+				<div class="products-header">
+					<span>{{ theme.settings.combined_products }}</span>
+				</div>
+				<div class="products-content row">
+					{% set showcase = {'type':'CombineProducts'} %}
+					{% for item in combine_product_showcase_items %}
+						<div class="product-item col-auto">
+							{% include 'html/snippets/showcase-item.twig' %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+		{% if product.tags | length > 0 %}
+			<div class="product-tags">
+				<div class="product-tags-title">{{ getLang("_LabelFilter_") }} :</div>
+				<div class="product-tags-content">
+					{% for tag in product.tags %}
+						<a href="{{ tag.url }}" title="{{ tag.name }}" target="_blank">{{ tag.name }}</a>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+	</div>
+	{% if theme.settings.use_rich_snippets %}
+		{% include 'html/snippets/product/rich-snippet.twig' %}
+	{% endif %}
+	{% include 'html/snippets/product/tracking.twig' %}
+	{% include 'html/snippets/product/form/add-question.twig' %}
+	{% include 'html/snippets/product/form/add-comment.twig' %}
+	{% include 'html/snippets/product/form/send-recommend.twig' %}
+</div>
+{% endblock %}

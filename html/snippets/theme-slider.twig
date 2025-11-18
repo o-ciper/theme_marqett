@@ -1,0 +1,130 @@
+{% set themeSlider = 0 %}
+{% for i in 1..10 %}
+	{% if theme.settings['slider_status_' ~ i] == 1 %}
+		{% set themeSlider = 1 %}
+	{% endif %}
+{% endfor %}
+{% if themeSlider == 1 %}
+<div class="theme-slider">
+	{% for i in 1..10 %}
+		{% set slideMode = 'image' %}
+		{% if theme.settings['slider_title_' ~ i] or theme.settings['slider_content_' ~ i] or theme.settings['slider_button_' ~ i] or theme.settings['slider_picture_' ~ i] %}
+			{% set slideMode = 'content' %}
+		{% endif %}
+		{% if theme.settings['slider_status_' ~ i] %}
+			<div class="theme-slider-{{i}} theme-slider-item{{ slideMode == 'content' ? ' content' : ' image' }}"{% if theme.settings['slider_color_' ~ i] %} style="background-color:{{ theme.settings['slider_color_' ~ i] }};{% if slideMode == 'content' %}background-image:url('{{ themeAsset(theme.settings['slider_url_' ~ i]) }}'){% endif %}"{% endif %}>
+				{% if theme.settings['slider_link_' ~ i] %}
+					<a href="{{ theme.settings['slider_link_' ~ i] }}"{{ theme.settings['slider_target_' ~ i] ? ' target="_blank"' }}>
+				{% endif %}
+					{% if slideMode == 'content' %}
+						<div class="theme-slider-content" style="padding-top:{{ theme.settings['slider_padding_top_' ~ i] }}px;padding-bottom:{{ theme.settings['slider_padding_bottom_' ~ i] }}px;">
+							<div>
+								<div class="row align-items-center">
+									{% if theme.settings['slider_title_' ~ i] or theme.settings['slider_content_' ~ i] or theme.settings['slider_button_' ~ i] %}
+										{% if theme.settings['slider_type_' ~ i] == 1 %}
+											<div class="col-lg-6 order-1 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 2 %}
+											{% if theme.settings['slider_picture_' ~ i] %}
+												<div class="col-lg-6 order-2 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+											{% else %}
+												<div class="col-lg-6 offset-lg-6 order-2 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+											{% endif %}
+										{% elseif theme.settings['slider_type_' ~ i] == 3 %}
+											<div class="col-lg-6 offset-lg-3 order-1 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 4 %}
+											<div class="col-lg-12 order-1 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 5 %}
+											<div class="col-lg-6 offset-lg-3 order-2 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 6 %}
+											<div class="col-lg-12 order-2 content-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% endif %}
+											{% if theme.settings['slider_type_' ~ i] == 1 %}
+												<div class="theme-slider-texts-wrapper text-center {{ theme.settings['slider_align_' ~ i] }}" style="padding-left: {{ theme.settings['slider_padding_horizontal_' ~ i] }}px;">
+											{% elseif theme.settings['slider_type_' ~ i] == 2 %}
+												<div class="theme-slider-texts-wrapper text-center {{ theme.settings['slider_align_' ~ i] }}" style="padding-right: {{ theme.settings['slider_padding_horizontal_' ~ i] }}px;">
+											{% else %}
+												<div class="theme-slider-texts-wrapper text-center {{ theme.settings['slider_align_' ~ i] }}" style="padding-left: {{ theme.settings['slider_padding_horizontal_' ~ i] }}px;padding-right: {{ theme.settings['slider_padding_horizontal_' ~ i] }}px;">
+											{% endif %}
+												{% if theme.settings['slider_title_' ~ i] %}
+													<div class="theme-slider-title {{ theme.settings.slider_title_size }}" style="color:{{ theme.settings['slider_title_color_' ~ i] }};">{{ theme.settings['slider_title_' ~ i] }}</div>
+												{% endif %}
+												{% if theme.settings['slider_content_' ~ i] %}
+													<div class="theme-slider-sub-title {{ theme.settings.slider_content_size }}" style="color:{{ theme.settings['slider_content_color_' ~ i] }};">{{ theme.settings['slider_content_' ~ i] }}</div>
+												{% endif %}
+												{% if theme.settings['slider_button_' ~ i] %}
+													<div class="theme-slider-button">
+														<button class="btn {{ theme.settings.slider_button_size }} {{ theme.settings.slider_button_type }}" style="background-color:{{ theme.settings['slider_button_bg_color_' ~ i] }};color:{{ theme.settings['slider_button_text_color_' ~ i] }}">
+															{{ theme.settings['slider_button_' ~ i] }}
+														</button>
+													</div>
+												{% endif %}
+											</div>
+										</div>
+									{% endif %}
+									{% if theme.settings['slider_picture_' ~ i] %}
+										{% if theme.settings['slider_type_' ~ i] == 1 %}
+											{% if theme.settings['slider_title_' ~ i] or theme.settings['slider_content_' ~ i] or theme.settings['slider_button_' ~ i] %}
+												<div class="col-lg-6 order-2 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+											{% else %}
+												<div class="col-lg-6 offset-lg-6 order-2 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+											{% endif %}
+										{% elseif theme.settings['slider_type_' ~ i] == 2 %}
+											<div class="col-lg-6 order-1 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 3 %}
+											<div class="col-lg-6 offset-lg-3 order-2 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 4 %}
+											<div class="col-lg-12 order-2 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 5 %}
+											<div class="col-lg-6 offset-lg-3 order-1 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% elseif theme.settings['slider_type_' ~ i] == 6 %}
+											<div class="col-lg-12 order-1 picture-type-{{ theme.settings['slider_type_' ~ i] }}">
+										{% endif %}
+											<div class="theme-slider-picture text-center">
+												<img src="{{ themeAsset(theme.settings['slider_picture_' ~ i]) }}" />
+											</div>
+										</div>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+					{% endif %}
+					{% if theme.settings['slider_url_' ~ i] and slideMode == 'image' %}
+						<div class="theme-slider-image">
+							<img src="{{ themeAsset(theme.settings['slider_url_' ~ i]) }}" />
+						</div>
+					{% endif %}
+				{% if theme.settings['slider_link_' ~ i] %}
+					</a>
+				{% endif %}
+			</div>
+		{% endif %}
+	{% endfor %}
+</div>
+<script type="text/javascript">
+	$(function() {
+		if($('.theme-slider .theme-slider-item').length > 0) {
+			$('.theme-slider').slick({
+				fade: {{ theme.settings.slide_mode == 'slide' ? 'false' : 'true' }},
+				autoplay: {{ theme.settings.slide_autoplay == 1 ? 'true' : 'false' }},
+				autoplaySpeed: {{ theme.settings.slide_delay }},
+				speed: {{ theme.settings.slide_speed }},
+				arrows: {{ theme.settings.slider_arrows == 1 ? 'true' : 'false' }},
+				infinite: true,
+				prevArrow: '<button type="button" class="slick-prev" aria-label="Previous"><i style="color:{{ theme.settings.slider_arrows_color }};" class="fas fa-angle-left"></i></button>',
+				nextArrow: '<button type="button" class="slick-next" aria-label="Next"><i style="color:{{ theme.settings.slider_arrows_color }};" class="fas fa-angle-right"></i></button>',
+				dots: {{ theme.settings.slider_dots == 1 ? 'true' : 'false' }},
+				adaptiveHeight: true
+			});
+		}
+	});
+</script>
+<style type="text/css">
+	.theme-slider .slick-dots > li > button {
+		{{ theme.settings.slider_dots_text == 0 ? 'text-indent:-9999px;' }}
+		background-color: {{ theme.settings.slider_dots_passive_color }};
+	}
+	.theme-slider .slick-dots > li.slick-active > button {
+		background-color: {{ theme.settings.slider_dots_active_color }};
+	}
+</style>
+{% endif %}

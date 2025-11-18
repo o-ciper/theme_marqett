@@ -1,0 +1,196 @@
+{% extends 'html/layouts/content-only.twig' %}
+{% block content %}
+{% if theme.settings.banner_img_1 or theme.settings.banner_img_2 or theme.settings.banner_img_3 %}
+	{% set hasBanner = true %}
+{% else %}
+	{% set hasBanner = false %}
+{% endif %}
+	<div class="entry-row-1 mb-4 mb-md-5">
+		<div class="row">
+			<div class="{{ hasBanner ? 'col-xl-8' : 'col-12' }} mb-4 mb-md-5 mb-xl-0">
+                {% if theme.settings.slide_status %}
+                    <div id="entry-slider">
+                        {% if theme.settings.slide_varyant == 'themeslider' %}
+                            {% include 'html/snippets/theme-slider.twig' %}
+                        {% else %}
+                            {{ macro_global('slider', 'default') }}
+                        {% endif %}
+                    </div>
+                {% endif %}
+			</div>
+			{% if hasBanner %}
+			<div class="col-xl-4">
+				<div class="row">
+					{% if theme.settings.banner_img_1 %}
+						<div class="col-12 col-sm-4 col-xl-12 mb-4 mb-sm-0 mb-xl-5">
+							<div class="banner">
+								{% if theme.settings.banner_link_1 %}
+									<a href="{{ theme.settings.banner_link_1 }}" target="{{ theme.settings.banner_target_1 == 0 ? '' : '_blank'  }}">
+								{% endif %}
+									<img src="{{ themeAsset(theme.settings.banner_img_1) }}" />
+								{% if theme.settings.banner_link_1 %}
+									</a>
+								{% endif %}
+							</div>
+						</div>
+					{% endif %}
+					{% if theme.settings.banner_img_2 %}
+						<div class="col-12 col-sm-4 col-xl-12 mb-4 mb-sm-0 mb-xl-5">
+							<div class="banner">
+								{% if theme.settings.banner_link_2 %}
+									<a href="{{ theme.settings.banner_link_2 }}" target="{{ theme.settings.banner_target_2 == 0 ? '' : '_blank'  }}">
+								{% endif %}
+									<img src="{{ themeAsset(theme.settings.banner_img_2) }}" />
+								{% if theme.settings.banner_link_2 %}
+									</a>
+								{% endif %}
+							</div>
+						</div>
+					{% endif %}
+					{% if theme.settings.banner_img_3 %}
+						<div class="col-12 col-sm-4 col-xl-12">
+							<div class="banner">
+								{% if theme.settings.banner_link_3 %}
+									<a href="{{ theme.settings.banner_link_3 }}" target="{{ theme.settings.banner_target_3 == 0 ? '' : '_blank'  }}">
+								{% endif %}
+									<img src="{{ themeAsset(theme.settings.banner_img_3) }}" />
+								{% if theme.settings.banner_link_3 %}
+									</a>
+								{% endif %}
+							</div>
+						</div>
+					{% endif %}
+				</div>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+	{% set productList = getProducts('home', {'limit': 20}) %}
+	{% if productList | length > 0 %}
+		<div class="entry-row-2 mb-4 mb-md-5">
+			<div class="default-products home-products">
+				<div class="products-header">
+					<span>{{ theme.settings.home_title }}</span>
+				</div>
+				<div class="products-content row">
+					{% for item in productList %}
+						<div class="product-item">
+							{% include 'html/snippets/showcase-item.twig' %}
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	{% endif %}
+	{% if theme.settings.banner_img_4 %}
+		<div class="entry-row-3 mb-4 mb-md-5">
+			<div class="banner">
+				{% if theme.settings.banner_link_4 %}
+					<a href="{{ theme.settings.banner_link_4 }}" target="{{ theme.settings.banner_target_4 == 0 ? '' : '_blank'  }}">
+				{% endif %}
+					<img src="{{ themeAsset(theme.settings.banner_img_4) }}" />
+				{% if theme.settings.banner_link_4 %}
+					</a>
+				{% endif %}
+			</div>
+		</div>
+	{% endif %}
+	<div class="entry-row-4 mb-4 mb-md-5">
+		<div class="list-tab">
+			{% set tabList = {} %}
+			{% if theme.settings['featured_title'] %}
+				{% set tabList = tabList|merge({'featured': theme.settings['featured_title']}) %}
+			{% endif %}
+			{% if theme.settings['popular_title'] %}
+				{% set tabList = tabList|merge({'popular': theme.settings['popular_title']}) %}
+			{% endif %}
+			{% if theme.settings['new_title'] %}
+				{% set tabList = tabList|merge({'new': theme.settings['new_title']}) %}
+			{% endif %}
+			{% if theme.settings['discounted_title'] %}
+				{% set tabList = tabList|merge({'discounted': theme.settings['discounted_title']}) %}
+			{% endif %}
+
+			<div class="list-tab-title">
+				<div class="row justify-content-lg-center flex-nowrap">
+					{% for tab in tabList %}
+						<div class="col-auto {% if loop.first %} active{% endif %}" data-tab-index="{{ loop.index }}"><a href="javascript:void(0);">{{ tab }}</a></div>
+					{% endfor %}
+				</div>
+			</div>
+			<div class="list-tab-content">
+				{% for key, tab in tabList %}
+					{% set productList = getProducts(key, {'limit': 20}) %}
+					<div class="list-tab-products{% if loop.first %} active{% endif %}" data-tab-content="{{ loop.index }}">
+						{% if productList | length > 0 %}
+							<div class="products-content row">
+								{% for item in productList %}
+									<div class="product-item col-6 col-lg-3">
+										{% include 'html/snippets/showcase-item.twig' %}
+									</div>
+								{% endfor %}
+							</div>
+						{% endif %}
+					</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	{% if theme.settings.banner_img_5 or theme.settings.banner_img_6 or theme.settings.banner_img_7 %}
+		<div class="entry-row-5 mb-4 mb-md-5">
+			<div class="row">
+				{% if theme.settings.banner_img_5 %}
+					<div class="col-sm-4 mb-4 mb-sm-0">
+						<div class="banner">
+							{% if theme.settings.banner_link_5 %}
+								<a href="{{ theme.settings.banner_link_5 }}" target="{{ theme.settings.banner_target_5 == 0 ? '' : '_blank'  }}">
+							{% endif %}
+								<img src="{{ themeAsset(theme.settings.banner_img_5) }}" />
+							{% if theme.settings.banner_link_5 %}
+								</a>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+				{% if theme.settings.banner_img_6 %}
+					<div class="col-sm-4 mb-4 mb-sm-0">
+						<div class="banner">
+							{% if theme.settings.banner_link_6 %}
+								<a href="{{ theme.settings.banner_link_6 }}" target="{{ theme.settings.banner_target_6 == 0 ? '' : '_blank'  }}">
+							{% endif %}
+								<img src="{{ themeAsset(theme.settings.banner_img_6) }}" />
+							{% if theme.settings.banner_link_6 %}
+								</a>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+				{% if theme.settings.banner_img_7 %}
+					<div class="col-sm-4">
+						<div class="banner">
+							{% if theme.settings.banner_link_7 %}
+								<a href="{{ theme.settings.banner_link_7 }}" target="{{ theme.settings.banner_target_7 == 0 ? '' : '_blank'  }}">
+							{% endif %}
+								<img src="{{ themeAsset(theme.settings.banner_img_7) }}" />
+							{% if theme.settings.banner_link_7 %}
+								</a>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+	{% endif %}
+	{% if theme.settings.show_brands_carousel %}
+		<div class="entry-row-6">
+			<div class="brands-list">
+				{% if theme.settings.brands_title | spaceless | length > 0 %}
+					<div class="brands-list-title">
+						<span>{{ theme.settings.brands_title }}</span>
+					</div>
+				{% endif %}
+				<div class="brands-list-content row"></div>
+			</div>
+		</div>
+	{% endif %}
+{% endblock %}

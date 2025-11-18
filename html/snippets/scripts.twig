@@ -1,0 +1,9 @@
+<script type="text/javascript">
+	var brands = JSON.parse('{{ getBrandsJson() }}');
+</script>
+<link rel="preload" as="script" href="{{ themeAsset('javascript/theme.js') }}">
+<script type="text/javascript" src="{{ themeAsset('javascript/theme.js') }}"></script>
+<script type="text/javascript" src="{{ themeAsset('javascript/navigation-menu.js') }}"></script>
+{% if theme.settings.use_lazy_load %}
+	<script type="text/javascript" src="{{ themeAsset('javascript/lazyload.min.js') }}"></script>
+{% endif %}

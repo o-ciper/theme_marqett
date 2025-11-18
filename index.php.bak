@@ -1,0 +1,45 @@
+<?php
+require __DIR__ . '/vendor/autoload.php';
+
+// Configure Twig to load templates from the 'html' folder so includes like 'snippets/header.twig' work
+$loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/html');
+$twig = new \Twig\Environment($loader, [
+    'cache' => false,
+    'auto_reload' => true,
+]);
+
+// Load config if present (useful for real settings)
+$settings = [];
+if (file_exists(__DIR__ . '/configs/settings_data.json')) {
+    $settings = json_decode(file_get_contents(__DIR__ . '/configs/settings_data.json'), true) ?: [];
+}
+
+// Provide some simple mock data your templates can use
+$context = [
+    'settings' => $settings,
+    'site_title' => $settings['name'] ?? 'Local Template Preview',
+    // slider images - adjust to whatever filenames exist in assets/uploads
+    'slides' => [
+        ['image' => 'assets/uploads/slider_1.jpg', 'title' => 'Slide One'],
+        ['image' => 'assets/uploads/slider_2.png', 'title' => 'Slide Two'],
+        ['image' => 'assets/uploads/slider_3.png', 'title' => 'Slide Three'],
+    ],
+    // sample product(s) (templates usually expect arrays/objects - open the twig files to match names)
+    'products' => [
+        [
+            'title' => 'Demo Product A',
+            'price' => '19.99',
+            'image' => 'assets/uploads/nopic_image.png',
+            'excerpt' => 'Short description here',
+        ],
+    ],
+];
+
+// Render the template you want to preview. If entry.twig is the main file:
+try {
+    echo $twig->render('templates/default/entry.twig', $context);
+} catch (\Twig\Error\LoaderError $e) {
+    // If the template path differs, echo error to help debug
+    echo "<h2>Twig loader error</h2>";
+    echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+}

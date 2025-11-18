@@ -1,0 +1,63 @@
+<div class="product-detail-tab">
+	<div class="product-detail-tab-header">
+		<div class="row flex-nowrap no-gutters">
+			<div class="col-auto col-lg active" data-tab-index="1"><a href="javascript:void(0);">{{ theme.settings.tab_product_info }}</a></div>
+			{% if theme.settings.product_detail_page_tabs.display_product_comments %}
+				<div class="col-auto col-lg" data-tab-index="2"><a href="javascript:void(0);">{{ theme.settings.tab_product_comments }}</a></div>
+			{% endif %}
+			{% if theme.settings.product_detail_page_tabs.display_product_questions %}
+				<div class="col-auto col-lg" data-tab-index="3"><a href="javascript:void(0);">{{ theme.settings.tab_product_questions }}</a></div>
+			{% endif %}
+			{% if theme.settings.product_detail_page_tabs.display_payment_options %}
+				<div class="col-auto col-lg" data-tab-index="4" data-type="payment-option"><a href="javascript:void(0);">{{ theme.settings.tab_product_payment_options }}</a></div>
+			{% endif %}
+			{% if theme.settings.product_detail_page_tabs.display_product_feeds %}
+				<div class="col-auto col-lg" data-tab-index="5"><a href="javascript:void(0);">{{ theme.settings.tab_product_feeds }}</a></div>
+			{% endif %}
+			{% if theme.settings.product_detail_page_tabs.display_special_information_area and product.specialInfo %}
+				<div class="col-auto col-lg" data-tab-index="6"><a href="javascript:void(0);">{{ product.specialInfo.title }}</a></div>
+			{% endif %}
+			{% if theme.settings.product_detail_page_tabs.display_shopping_experiences %}
+				<div class="col-auto col-lg" data-tab-index="7"><a href="javascript:void(0);">{{ theme.settings.tab_shopping_experiences }}</a></div>
+			{% endif %}
+		</div>
+	</div>
+	<div class="product-detail-tab-content">
+		<div class="active" data-tab-content="1">
+			<div class="product-detail">{{ product.details | raw }}</div>
+			{% if product.specs | length > 0 and theme.settings.display_product_attributes %}
+				<div class="product-specs-table">
+					<table class="table">
+						<tbody>
+							{% for spec in product.specs %}
+								<tr>
+									<td>{{ spec.name }}</td>
+									<td>:</td>
+									<td>{{ spec.values | join(', ') }}</td>
+								</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			{% endif %}
+		</div>
+		{% if theme.settings.product_detail_page_tabs.display_product_comments %}
+			<div class="col-12" data-tab-content="2">{% include 'html/snippets/product/comment.twig' %}</div>
+		{% endif %}
+		{% if theme.settings.product_detail_page_tabs.display_product_questions %}
+			<div class="col-12" data-tab-content="3">{% include 'html/snippets/product/question.twig' %}</div>
+		{% endif %}
+		{% if theme.settings.product_detail_page_tabs.display_payment_options %}
+			<div class="col-12" data-tab-content="4"></div>
+		{% endif %}
+		{% if theme.settings.product_detail_page_tabs.display_product_feeds %}
+			<div class="col-12" data-tab-content="5">{% include 'html/snippets/product/form/product-feed.twig' %}</div>
+		{% endif %}
+		{% if theme.settings.product_detail_page_tabs.display_special_information_area and product.specialInfo %}
+		<div class="col-12" data-tab-content="6"><div>{{ product.specialInfo.content | raw }}</div></div>
+		{% endif %}
+		{% if theme.settings.product_detail_page_tabs.display_shopping_experiences %}
+			<div class="col-12" data-tab-content="7">{% include 'html/snippets/shopping-experience.twig' %}</div>
+		{% endif %}
+	</div>
+</div>
